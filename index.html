@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Auth App</title>
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0d0d14;
+      --surface: #16161f;
+      --card: #1e1e2e;
+      --border: #2a2a3d;
+      --accent: #e94560;
+      --accent2: #a855f7;
+      --text: #e8e8f0;
+      --muted: #6b6b80;
+      --success: #22c55e;
+      --error: #ef4444;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Sora', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* Background blobs */
+    body::before, body::after {
+      content: '';
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(80px);
+      opacity: 0.15;
+      pointer-events: none;
+    }
+    body::before {
+      width: 500px; height: 500px;
+      background: var(--accent);
+      top: -100px; left: -100px;
+      animation: drift 8s ease-in-out infinite alternate;
+    }
+    body::after {
+      width: 400px; height: 400px;
+      background: var(--accent2);
+      bottom: -100px; right: -100px;
+      animation: drift 10s ease-in-out infinite alternate-reverse;
+    }
+    @keyframes drift {
+      from { transform: translate(0,0); }
+      to   { transform: translate(40px, 30px); }
+    }
+
+    .container {
+      width: 100%;
+      max-width: 420px;
+      padding: 20px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .logo {
+      text-align: center;
+      margin-bottom: 32px;
+    }
+    .logo-icon {
+      width: 52px; height: 52px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      border-radius: 16px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      margin-bottom: 12px;
+      box-shadow: 0 0 30px rgba(233,69,96,0.4);
+    }
+    .logo h1 {
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+    }
+    .logo span { color: var(--accent); }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 32px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+      animation: slideUp 0.4s ease;
+    }
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .tabs {
+      display: flex;
+      background: var(--surface);
+      border-radius: 10px;
+      padding: 4px;
+      margin-bottom: 28px;
+      gap: 4px;
+    }
+    .tab {
+      flex: 1;
+      padding: 9px;
+      text-align: center;
+      font-size: 13px;
+      font-weight: 600;
+      border-radius: 7px;
+      cursor: pointer;
+      color: var(--muted);
+      transition: all 0.25s;
+      user-select: none;
+    }
+    .tab.active {
+      background: var(--accent);
+      color: white;
+      box-shadow: 0 4px 12px rgba(233,69,96,0.3);
+    }
+
+    .form-group { margin-bottom: 18px; }
+    label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      margin-bottom: 8px;
+    }
+    input {
+      width: 100%;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 16px;
+      color: var(--text);
+      font-family: 'Sora', sans-serif;
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(233,69,96,0.15);
+    }
+    input::placeholder { color: var(--muted); }
+
+    .otp-row {
+      display: flex;
+      gap: 10px;
+    }
+    .otp-row input { flex: 1; font-family: 'Space Mono', monospace; font-size: 20px; text-align: center; letter-spacing: 6px; }
+
+    .btn {
+      width: 100%;
+      padding: 13px;
+      border: none;
+      border-radius: 10px;
+      font-family: 'Sora', sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      margin-top: 4px;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent), #c0392b);
+      color: white;
+      box-shadow: 0 4px 15px rgba(233,69,96,0.35);
+    }
+    .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(233,69,96,0.45); }
+    .btn-primary:active { transform: translateY(0); }
+    .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+    .btn-secondary {
+      background: var(--surface);
+      color: var(--muted);
+      border: 1px solid var(--border);
+      margin-top: 10px;
+    }
+    .btn-secondary:hover { color: var(--text); border-color: var(--muted); }
+
+    .message {
+      padding: 11px 14px;
+      border-radius: 9px;
+      font-size: 13px;
+      margin-bottom: 16px;
+      display: none;
+      animation: fadeIn 0.3s ease;
+    }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    .message.success { background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.3); color: var(--success); }
+    .message.error   { background: rgba(239,68,68,0.1);  border: 1px solid rgba(239,68,68,0.3);  color: var(--error); }
+    .message.show { display: block; }
+
+    /* Dashboard */
+    #dashboard { display: none; }
+    .dash-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 24px;
+    }
+    .dash-header h2 { font-size: 18px; font-weight: 700; }
+    .avatar {
+      width: 40px; height: 40px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 700; font-size: 16px;
+    }
+    .inbox-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
+    .inbox-item {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px 16px;
+      cursor: pointer;
+      transition: border-color 0.2s, transform 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .inbox-item:hover { border-color: var(--accent); transform: translateX(3px); }
+    .inbox-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--accent);
+      flex-shrink: 0;
+    }
+    .inbox-dot.read { background: var(--border); }
+    .inbox-content { flex: 1; min-width: 0; }
+    .inbox-from { font-size: 13px; font-weight: 600; }
+    .inbox-subject { font-size: 12px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 2px; }
+    .inbox-time { font-size: 11px; color: var(--muted); flex-shrink: 0; }
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 99px;
+      font-size: 10px;
+      font-weight: 700;
+      background: rgba(233,69,96,0.2);
+      color: var(--accent);
+      margin-left: 6px;
+    }
+
+    .step { display: none; }
+    .step.active { display: block; animation: slideUp 0.35s ease; }
+
+    .resend-link {
+      text-align: center;
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 14px;
+    }
+    .resend-link a { color: var(--accent); cursor: pointer; text-decoration: none; }
+    .resend-link a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <!-- AUTH CARD -->
+  <div id="authSection">
+    <div class="logo">
+      <div class="logo-icon">✉️</div>
+      <h1>Mail<span>Box</span></h1>
+    </div>
+
+    <div class="card">
+      <div class="tabs">
+        <div class="tab active" onclick="switchTab('login')">Đăng nhập</div>
+        <div class="tab" onclick="switchTab('register')">Đăng ký</div>
+      </div>
+
+      <!-- LOGIN FORM -->
+      <div id="loginForm" class="step active">
+        <div id="loginMsg" class="message"></div>
+        <div class="form-group">
+          <label>Email</label>
+          <input type="email" id="loginEmail" placeholder="ban@gmail.com"/>
+        </div>
+        <div class="form-group">
+          <label>Mật khẩu</label>
+          <input type="password" id="loginPass" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()"/>
+        </div>
+        <button class="btn btn-primary" onclick="doLogin()">Đăng nhập</button>
+      </div>
+
+      <!-- REGISTER STEP 1: Info -->
+      <div id="registerForm" class="step">
+        <div id="registerMsg" class="message"></div>
+        <div class="form-group">
+          <label>Họ tên</label>
+          <input type="text" id="regName" placeholder="Nguyễn Văn A"/>
+        </div>
+        <div class="form-group">
+          <label>Email</label>
+          <input type="email" id="regEmail" placeholder="ban@gmail.com"/>
+        </div>
+        <div class="form-group">
+          <label>Mật khẩu</label>
+          <input type="password" id="regPass" placeholder="Tối thiểu 6 ký tự"/>
+        </div>
+        <button class="btn btn-primary" id="sendOtpBtn" onclick="sendOTP()">Gửi mã OTP</button>
+      </div>
+
+      <!-- REGISTER STEP 2: OTP -->
+      <div id="otpForm" class="step">
+        <div id="otpMsg" class="message"></div>
+        <p style="font-size:13px;color:var(--muted);margin-bottom:20px;line-height:1.6">
+          Mã OTP đã được gửi đến email <strong id="sentToEmail" style="color:var(--text)"></strong>. Vui lòng kiểm tra hộp thư.
+        </p>
+        <div class="form-group">
+          <label>Nhập mã OTP (6 chữ số)</label>
+          <div class="otp-row">
+            <input type="text" id="otpInput" maxlength="6" placeholder="000000" onkeydown="if(event.key==='Enter')verifyOTP()"/>
+          </div>
+        </div>
+        <button class="btn btn-primary" onclick="verifyOTP()">Xác thực & Tạo tài khoản</button>
+        <button class="btn btn-secondary" onclick="backToRegister()">← Quay lại</button>
+        <div class="resend-link">
+          Không nhận được mã? <a onclick="resendOTP()">Gửi lại OTP</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DASHBOARD -->
+  <div id="dashboard" class="card" style="max-width:420px;width:100%">
+    <div class="dash-header">
+      <div>
+        <h2>Hộp thư đến <span class="badge">3</span></h2>
+        <p style="font-size:12px;color:var(--muted);margin-top:3px">Xin chào, <span id="dashName" style="color:var(--accent)"></span> 👋</p>
+      </div>
+      <div class="avatar" id="dashAvatar"></div>
+    </div>
+
+    <div class="inbox-list">
+      <div class="inbox-item">
+        <div class="inbox-dot"></div>
+        <div class="inbox-content">
+          <div class="inbox-from">Auth App <span style="color:var(--accent);font-size:11px">✓</span></div>
+          <div class="inbox-subject">🔐 Mã xác thực OTP của bạn</div>
+        </div>
+        <div class="inbox-time">Vừa xong</div>
+      </div>
+      <div class="inbox-item">
+        <div class="inbox-dot"></div>
+        <div class="inbox-content">
+          <div class="inbox-from">Hệ thống</div>
+          <div class="inbox-subject">Chào mừng bạn đến với MailBox!</div>
+        </div>
+        <div class="inbox-time">Hôm nay</div>
+      </div>
+      <div class="inbox-item">
+        <div class="inbox-dot read"></div>
+        <div class="inbox-content">
+          <div class="inbox-from">Thông báo</div>
+          <div class="inbox-subject">Tài khoản của bạn đã được kích hoạt</div>
+        </div>
+        <div class="inbox-time">Hôm nay</div>
+      </div>
+    </div>
+
+    <button class="btn btn-secondary" onclick="doLogout()">Đăng xuất</button>
+  </div>
+
+</div>
+
+<script>
+  let currentTab = 'login';
+  let pendingEmail = '';
+
+  // ── Tab switch ──────────────────────────────────────────────
+  function switchTab(tab) {
+    currentTab = tab;
+    document.querySelectorAll('.tab').forEach((t, i) => {
+      t.classList.toggle('active', (i === 0 && tab === 'login') || (i === 1 && tab === 'register'));
+    });
+    showStep(tab === 'login' ? 'loginForm' : 'registerForm');
+    clearMessages();
+  }
+
+  function showStep(id) {
+    document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+  }
+
+  function showMsg(id, type, text) {
+    const el = document.getElementById(id);
+    el.className = `message ${type} show`;
+    el.textContent = text;
+  }
+
+  function clearMessages() {
+    document.querySelectorAll('.message').forEach(m => {
+      m.className = 'message';
+      m.textContent = '';
+    });
+  }
+
+  // ── Login ───────────────────────────────────────────────────
+  async function doLogin() {
+    const email = document.getElementById('loginEmail').value.trim();
+    const password = document.getElementById('loginPass').value;
+    if (!email || !password) return showMsg('loginMsg', 'error', 'Vui lòng nhập email và mật khẩu.');
+
+    const res = await post('/api/login', { email, password });
+    if (res.success) {
+      checkSession();
+    } else {
+      showMsg('loginMsg', 'error', res.message);
+    }
+  }
+
+  // ── Register: Send OTP ──────────────────────────────────────
+  async function sendOTP() {
+    const name = document.getElementById('regName').value.trim();
+    const email = document.getElementById('regEmail').value.trim();
+    const password = document.getElementById('regPass').value;
+
+    if (!name || !email || !password) return showMsg('registerMsg', 'error', 'Vui lòng điền đầy đủ thông tin.');
+    if (password.length < 6) return showMsg('registerMsg', 'error', 'Mật khẩu tối thiểu 6 ký tự.');
+
+    const btn = document.getElementById('sendOtpBtn');
+    btn.disabled = true;
+    btn.textContent = 'Đang gửi...';
+
+    const res = await post('/api/register/send-otp', { name, email, password });
+
+    btn.disabled = false;
+    btn.textContent = 'Gửi mã OTP';
+
+    if (res.success) {
+      pendingEmail = email;
+      document.getElementById('sentToEmail').textContent = email;
+      showStep('otpForm');
+      showMsg('otpMsg', 'success', res.message);
+    } else {
+      showMsg('registerMsg', 'error', res.message);
+    }
+  }
+
+  async function resendOTP() {
+    const name = document.getElementById('regName').value.trim();
+    const email = document.getElementById('regEmail').value.trim();
+    const password = document.getElementById('regPass').value;
+    const res = await post('/api/register/send-otp', { name, email, password });
+    showMsg('otpMsg', res.success ? 'success' : 'error', res.message);
+  }
+
+  function backToRegister() {
+    showStep('registerForm');
+    clearMessages();
+  }
+
+  // ── Register: Verify OTP ────────────────────────────────────
+  async function verifyOTP() {
+    const otp = document.getElementById('otpInput').value.trim();
+    if (otp.length !== 6) return showMsg('otpMsg', 'error', 'Mã OTP phải đủ 6 chữ số.');
+
+    const res = await post('/api/register/verify-otp', { email: pendingEmail, otp });
+    if (res.success) {
+      showMsg('otpMsg', 'success', res.message);
+      setTimeout(checkSession, 800);
+    } else {
+      showMsg('otpMsg', 'error', res.message);
+    }
+  }
+
+  // ── Logout ──────────────────────────────────────────────────
+  async function doLogout() {
+    await post('/api/logout', {});
+    document.getElementById('dashboard').style.display = 'none';
+    document.getElementById('authSection').style.display = 'block';
+    switchTab('login');
+  }
+
+  // ── Check session on load ────────────────────────────────────
+  async function checkSession() {
+    const res = await fetch('/api/me').then(r => r.json());
+    if (res.loggedIn) {
+      document.getElementById('authSection').style.display = 'none';
+      document.getElementById('dashboard').style.display = 'block';
+      document.getElementById('dashName').textContent = res.user.name;
+      document.getElementById('dashAvatar').textContent = res.user.name.charAt(0).toUpperCase();
+    } else {
+      document.getElementById('authSection').style.display = 'block';
+      document.getElementById('dashboard').style.display = 'none';
+    }
+  }
+
+  // ── Helper ──────────────────────────────────────────────────
+  async function post(url, data) {
+    const r = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+    return r.json();
+  }
+
+  // Init
+  checkSession();
+</script>
+</body>
+</html>
